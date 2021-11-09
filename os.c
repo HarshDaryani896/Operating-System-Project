@@ -1,3 +1,9 @@
+#include<sys/types.h>
+#include<stdio.h>
+#include<unistd.h>
+#include<string.h>
+#include<pthread.h>
+
 int main()
 {
 	pid_t pid1;

@@ -1,0 +1,84 @@
+include<stdio.h>
+#include<stdlib.h>
+#include<unistd.h>
+#include<sys/types.h>
+#include<sys/wait.h>
+#include<pthread.h>
+#include<errno.h>
+#define  P1_READ 0
+#define P2_WRITE 1
+#define P2_READ 2
+#define P1_WRITE 3
+long val;
+void *add(void *param)
+{
+  int* upper=(int*) param;
+ int lim=*upper;
+  for(int i=0;i<=lim;i++)
+     val+=i;
+
+ pthread_exit(0);
+}
+int main()
+{
+
+ pid_t child;
+ int fd1[4];
+for(int i=0;i<2;i++)
+{
+      if(pipe(fd1+(i*2))<0)
+       {
+              perror("pipe failed");
+              exit(1);
+       }
+}
+
+if(( child=fork())<0)
+{
+ perror("fork faile");
+ exit(2);
+}
+
+  if (child==0)
+ {
+   int n1;
+close(fd1[P2_READ]);
+   close(fd1[P2_WRITE]);  
+   read(fd1[P1_READ],&n1,sizeof(n1));
+   close(fd1[P1_READ]);
+   int *nl=&n1; 
+  pthread_t tid[2];
+  pthread_attr_t at[2];
+  pthread_attr_init(&at[0]);
+  pthread_create(&tid[0],&at[0],add,nl);
+
+  pthread_join(tid[0],NULL);
+  
+
+   write(fd1[P1_WRITE],&val,sizeof(val));
+   close(fd1[P1_WRITE]);
+
+}
+else
+{
+
+  int d;
+  printf("Enter value of n1:");
+  scanf("%d",&d);
+   close(fd1[P1_READ]);
+   close(fd1[P1_WRITE]);
+  write(fd1[P2_WRITE],&d,sizeof(d));
+  close(fd1[P2_WRITE]);
+  long su;
+ 
+ read(fd1[P2_READ],&su,sizeof(su));
+ close(fd1[P2_READ]);
+ printf("sum is %ld ",su);
+  
+ wait(NULL);
+}
+
+
+
+}
+

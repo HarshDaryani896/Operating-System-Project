@@ -1,0 +1,92 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include<unistd.h>
+#include<sys/types.h>
+#include<sys/wait.h>
+#include<pthread.h>
+#include<errno.h>
+#define READ 0
+#define WRITE 1
+long val3=0;
+int n3;
+FILE *fptr;
+void *add(void *param)
+{
+       
+       int num;
+       int* upper=(int*) param;
+       int lim=*upper;
+    if ((fptr = fopen("add.txt", "r")) == NULL)
+    {
+        printf("Error! opening file");
+
+        exit(1);
+    }
+    for (int i = 0; i <lim; i++)
+    {
+        fscanf(fptr, "%d", &num);
+        val3 += num;
+    }
+
+    
+    fclose(fptr);
+
+ pthread_exit(0);
+}
+int main()
+{
+    int n3;
+    pid_t child3;
+ int fd3[2];
+ 
+  printf("Enter value of n3:");
+  scanf("%d",&n3);
+  
+
+      if(pipe(fd3)<0)
+       {
+              perror("pipe failed");
+              exit(1);
+       }
+
+
+if(( child3=fork())<0)
+{
+ perror("fork failed");
+ exit(2);
+}
+    if (child3==0)
+ {
+   close(fd3[READ]);
+ 
+   int *nl=&n3; 
+  pthread_t tid3[2];
+  pthread_attr_t at3[2];
+  pthread_attr_init(&at3[0]);
+  pthread_create(&tid3[0],&at3[0],add,nl);
+
+  pthread_join(tid3[0],NULL);
+  
+
+   write(fd3[WRITE],&val3,sizeof(val3));
+   close(fd3[WRITE]);
+
+}
+else
+{
+
+  
+   
+   close(fd3[WRITE]);
+  long su;
+ 
+ read(fd3[READ],&su,sizeof(su));
+ close(fd3[READ]);
+ printf("sum is %ld ",su);
+  
+ wait(NULL);
+}
+
+
+
+}
